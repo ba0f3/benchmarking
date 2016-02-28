@@ -1,4 +1,4 @@
-import nimbench, marshal, json
+import nimbench, marshal, json, jsmn
 
 type
   Status = enum
@@ -20,7 +20,7 @@ t1.tags = ["test", "blah"]
 #t1.categories = @["works", "urgent"]
 
 
-let js = $$t1
+var js = $$t1
 
 proc unpack(value: var string, node: JsonNode) =
   if node.kind != JNull:
@@ -99,40 +99,26 @@ proc unpack*(target: var auto, json: JsonNode) {.noSideEffect.} =
         unpack(value, json[name])
 
 bench(marshal_deserialize, m):
+  var
+    t: Task
   for _ in 1..m:
-    var t = to[Task](js)
-    doNotOptimizeAway(t)
-
-#bench(manual_deserialize, m):
-#  for _ in 1..m:
-#    var t: Task
-#    let n = parseJson(js)
-#    if n["id"] != nil and n["id"].kind != JNull:
-#      t.id = n["id"].num.int
-#    if n["title"] != nil and n["title"].kind != JNull:
-#      t.title = n["title"].str
-#    #t.done = cast[Status](n["done"].str)
-#    doNotOptimizeAway(t)
+    t = to[Task](js)
+  doNotOptimizeAway(t)
 
 bench(unpack_deserialize, m):
-   for _ in 1..m:
-     var t: Task
-     unpack(t, parseJson(js))
-     doNotOptimizeAway(t)
-
-discard """bench(marshal_serialize, m):
+  var
+    t: Task
   for _ in 1..m:
-    var js = $$t1
-    doNotOptimizeAway(js)
+    unpack(t, parseJson(js))
+  doNotOptimizeAway(t)
 
-bench(manual_serialize, m):
+bench(jsmn_deserialize, m):
+  var
+    t: Task
+    tokens: array[32, JsmnToken]
   for _ in 1..m:
-    var tmp = newJObject()
-    tmp.fields.add((key: "id", val: newJInt(t1.id)))
-    tmp.fields.add((key: "title", val: newJString(t1.title)))
-    tmp.fields.add((key: "done", val: newJString($t1.done)))
-    var js = $tmp
-    doNotOptimizeAway(js)
-"""
+    discard parseJson(addr js, tokens)
+    loadObject(t, tokens, js)
+  doNotOptimizeAway(t)
 
 runBenchmarks()
