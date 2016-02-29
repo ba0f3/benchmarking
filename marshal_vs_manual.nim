@@ -1,124 +1,94 @@
-import nimbench, marshal, json, jsmn
+import nimbench, marshal, ../jsmn/jsmn
 
 type
-  Status = enum
-    done, wontfix, inprogress
-  Task = object
-    id: int
-    title: string
-    done: Status
-    notes: string
-    tags: array[0..1, string]
-    categories: seq[string]
+  Percent = object
+    Name: string
+    Percent: int
+  Namecode = object
+    name: string
+    code: string
+  Doc = object
+    DocTypeDesc: string
+    DocType: string
+    EntityID: string
+    DocURL: string
+    DocDate: string
+  Sector = object
+    name: string
+  project = object
+    cdata: string
+  oid = object
+    oid: string
 
+  Data = object
+    iid: oid
+    approvalfy: string
+    board_approval_month: string
+    boardapprovaldate: string
+    borrower: string
+    closingdate: string
+    country_namecode: string
+    countrycode: string
+    countryname: string
+    countryshortname: string
+    docty: string
+    envassesmentcategorycode: char
+    grantamt: int
+    ibrdcommamt: int
+    id: string
+    idacommamt: int
+    impagency: string
+    lendinginstr: string
+    lendinginstrtype: string
+    lendprojectcost: int
+    majorsector_percent: seq[Percent]
+    mjsector_namecode: seq[Namecode]
+    mjtheme: seq[string]
+    mjtheme_namecode: seq[Namecode]
+    mjthemecode: string
+    prodline: string
+    prodlinetext: string
+    productlinetype: char
+    project_abstract: project
+    project_name: string
+    projectdocs: seq[Doc]
+    projectfinancialtype: string
+    projectstatusdisplay: string
+    regionname: string
+    sector: seq[Sector]
+    sector1: Percent
+    sector2: Percent
+    sector3: Percent
+    sector4: Percent
+    sector_namecode: seq[Namecode]
+    sectorcode: string
+    source: string
+    status: string
+    supplementprojectflg: char
+    theme1: Percent
+    theme_namecode: seq[Namecode]
+    themecode: string
+    totalamt: int
+    totalcommamt: int
+    url: string
 
-var t1: Task
-t1.id = 1
-#t1.title = "Blah blah"
-t1.done = wontfix
-t1.tags = ["test", "blah"]
-#t1.categories = @["works", "urgent"]
-
-
-var js = $$t1
-
-proc unpack(value: var string, node: JsonNode) =
-  if node.kind != JNull:
-    value = node.str
-
-proc unpack(value: var int, node: JsonNode) =
-  if node.kind != JNull:
-    value = node.num.int
-
-proc unpack(value: var int8, node: JsonNode) =
-  if node.kind != JNull:
-    value = node.num.int8
-
-proc unpack(value: var int16, node: JsonNode) =
-  if node.kind != JNull:
-    value = node.num.int16
-
-proc unpack(value: var int32, node: JsonNode) =
-  if node.kind != JNull:
-    value = node.num.int32
-
-proc unpack(value: var int64, node: JsonNode) =
-  if node.kind != JNull:
-    value = node.num.int64
-
-proc unpack(value: var uint, node: JsonNode) =
-  if node.kind != JNull:
-    value = node.num.uint
-
-proc unpack(value: var uint8, node: JsonNode) =
-  if node.kind != JNull:
-    value = node.num.uint8
-
-proc unpack(value: var uint16, node: JsonNode) =
-  if node.kind != JNull:
-    value = node.num.uint16
-
-proc unpack(value: var uint32, node: JsonNode) =
-  if node.kind != JNull:
-    value = node.num.uint32
-
-proc unpack(value: var uint64, node: JsonNode) =
-  if node.kind != JNull:
-    value = node.num.uint64
-
-proc unpack(value: var float, node: JsonNode) =
-  value = node.fnum
-
-proc unpack(value: var float32, node: JsonNode) =
-  value = node.fnum.float32
-
-proc unpack(value: var bool, node: JsonNode) =
-  value = node.bval
-
-proc unpack(value: var char, node: JsonNode) =
-  if node.str.len > 0:
-    value = node.str[0]
-
-proc unpack*(target: var auto, json: JsonNode) {.noSideEffect.} =
-  when target is array:
-    if json != nil and json.kind != JNull:
-      for i in 0..<json.len:
-        unpack(target[i], json[i])
-  elif target is seq:
-    discard
-    #if json != nil and json.kind != JNull:
-    #  target = @[]
-    #  for i in 0..<json.len:
-    #    unpack(target[i], json[i])
-  elif target is enum:
-    #target.type
-    target = cast[type(target)](json.str)
-  else:
-    for name, value in target.fieldPairs:
-      if json[name] != nil:
-        unpack(value, json[name])
 
 bench(marshal_deserialize, m):
   var
-    t: Task
+    t: Data
   for _ in 1..m:
-    t = to[Task](js)
-  doNotOptimizeAway(t)
-
-bench(unpack_deserialize, m):
-  var
-    t: Task
-  for _ in 1..m:
-    unpack(t, parseJson(js))
+    for js in lines("world_bank.json"):
+      t = to[Data](js)
   doNotOptimizeAway(t)
 
 bench(jsmn_deserialize, m):
   var
-    t: Task
-    tokens: array[32, JsmnToken]
-  for _ in 1..m:
-    discard parseJson(addr js, tokens)
-    loadObject(t, tokens, js)
+    t: Data
+    tokens: array[1024, JsmnToken]
+  for i in 1..m:
+    for js in lines("world_bank.json"):
+      discard parseJson(js, tokens)
+      loadObject(t, tokens, js)
   doNotOptimizeAway(t)
 
 runBenchmarks()
