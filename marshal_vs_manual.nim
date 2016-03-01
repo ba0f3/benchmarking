@@ -1,4 +1,4 @@
-import nimbench, marshal, ../jsmn.nim/jsmn
+import nimbench, marshal, ../jsmn/jsmn
 
 type
   Percent = object
@@ -84,11 +84,12 @@ bench(marshal_deserialize, m):
 bench(jsmn_deserialize, m):
   var
     t: Data
-    tokens: array[512, JsmnToken]
+    tokens: array[1024, JsmnToken]
   for i in 1..m:
     for js in lines("world_bank.json"):
       discard parseJson(js, tokens)
       loadObject(t, tokens, js)
       doNotOptimizeAway(t)
+
 
 runBenchmarks()
