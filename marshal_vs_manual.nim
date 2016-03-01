@@ -83,11 +83,12 @@ bench(marshal_deserialize, m):
 bench(jsmn_deserialize, m):
   var
     t: Data
+    r: int
     tokens: array[1024, JsmnToken]
   for _ in 1..m:
     for js in lines("world_bank.json"):
-      discard parseJson(js, tokens)
-      loadObject(t, tokens, js)
+      r = parseJson(js, tokens)
+      loadObject(t, tokens, r, js)
       doNotOptimizeAway(t)
 
 bench(jsmn_deserialize_dymanic_pool_size, m):
@@ -97,7 +98,7 @@ bench(jsmn_deserialize_dymanic_pool_size, m):
   for _ in 1..m:
     for js in lines("world_bank.json"):
       tokens = parseJson(js)
-      loadObject(t, tokens, js)
+      loadObject(t, tokens, tokens.len, js)
       doNotOptimizeAway(t)
 
 runBenchmarks()
