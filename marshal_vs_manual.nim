@@ -1,4 +1,4 @@
-import nimbench, marshal, ../jsmn.nim/jsmn
+import nimbench, marshal, ../jsmn.nim/jsmn, json
 
 type
   Percent = object
@@ -72,6 +72,22 @@ type
     totalcommamt: int
     url: string
 
+bench(json_parse, m):
+  var x: int
+  for _ in 1..m:
+    for js in lines("world_bank.json"):
+      var n = json.parseJson(js)
+      x = n["majorsector_percent"][0]["Percent"].num.int
+      doNotOptimizeAway(x)
+
+bench(jsmn_parse, m):
+  var x: int
+  for _ in 1..m:
+    for js in lines("world_bank.json"):
+      var n = Jsmn(js)
+      x = n["majorsector_percent"][0]["Percent"].getInt
+      doNotOptimizeAway(x)
+
 bench(marshal_deserialize, m):
   var
     t: Data
@@ -97,7 +113,7 @@ bench(jsmn_deserialize_dymanic_pool_size, m):
     tokens: seq[JsmnToken]
   for _ in 1..m:
     for js in lines("world_bank.json"):
-      tokens = parseJson(js)
+      tokens = jsmn.parseJson(js)
       loadObject(t, tokens, tokens.len, js)
       doNotOptimizeAway(t)
 
