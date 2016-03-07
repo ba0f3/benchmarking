@@ -1,4 +1,4 @@
-import nimbench, marshal, ../jsmn.nim/jsmn
+import nimbench, marshal, ../sam.nim/sam
 
 type
   Grade = enum
@@ -23,14 +23,16 @@ s.class = 'F'
 s.grade = A
 
 
-bench(jsmn_stringify, m):
-  var x: string
+bench(sam_dumps, m):
   for _ in 1..m:
-    var x = newStringOfCap(sizeof(s))
-    stringify(s, x)
+    var x = s.dumps
+#    echo x
     doNotOptimizeAway(x)
 
 bench(marshal_load, m):
   for _ in 1..m:
     var x = $$s
+#    echo x
     doNotOptimizeAway(x)
+
+runBenchmarks()

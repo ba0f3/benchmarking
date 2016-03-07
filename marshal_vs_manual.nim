@@ -85,7 +85,7 @@ bench(jsmn_parse, m):
   for _ in 1..m:
     for js in lines("world_bank.json"):
       var n = Jsmn(js)
-      x = n["majorsector_percent"][0]["Percent"].getInt
+      x = n["majorsector_percent"][0]["Percent"].toInt
       doNotOptimizeAway(x)
 
 bench(marshal_deserialize, m):
