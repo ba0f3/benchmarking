@@ -1,4 +1,4 @@
-import nimbench, marshal, ../jsmn.nim/jsmn, json
+import nimbench, marshal, ../sam.nim/sam, json
 
 type
   Percent = object
@@ -73,20 +73,53 @@ type
     url: string
 
 bench(json_parse, m):
-  var x: int
+  var
+    name: string
+    percent: int
   for _ in 1..m:
     for js in lines("world_bank.json"):
-      var n = json.parseJson(js)
-      x = n["majorsector_percent"][0]["Percent"].num.int
-      doNotOptimizeAway(x)
+      var n = parseJson(js)
+      name = n["majorsector_percent"][0]["Name"].str
+      percent = n["majorsector_percent"][0]["Percent"].num.int
+      doNotOptimizeAway(name)
+      doNotOptimizeAway(percent)
 
-bench(jsmn_parse, m):
-  var x: int
+bench(json_parse2, m):
+  var
+    name: string
+    percent: int
   for _ in 1..m:
     for js in lines("world_bank.json"):
-      var n = Jsmn(js)
-      x = n["majorsector_percent"][0]["Percent"].toInt
-      doNotOptimizeAway(x)
+      var n = parseJson(js)["majorsector_percent"][0]
+      name = n["Name"].str
+      percent = n["Percent"].num.int
+      doNotOptimizeAway(name)
+      doNotOptimizeAway(percent)
+
+bench(json_parse3, m):
+  var
+    name: string
+    percent: int
+  for _ in 1..m:
+    for js in lines("world_bank.json"):
+      var n = parseJson(js){"majorsector_percent"}[0]
+      name = n["Name"].str
+      percent = n["Percent"].num.int
+      doNotOptimizeAway(name)
+      doNotOptimizeAway(percent)
+
+
+bench(sam_parse, m):
+  var
+    name: string
+    percent: int
+  for _ in 1..m:
+    for js in lines("world_bank.json"):
+      var n = parse(js)
+      name = n["majorsector_percent"][0]["Name"].toStr()
+      percent = n{1}["Percent"].toInt()
+      doNotOptimizeAway(name)
+      doNotOptimizeAway(percent)
 
 bench(marshal_deserialize, m):
   var
@@ -96,25 +129,12 @@ bench(marshal_deserialize, m):
       t = to[Data](js)
       doNotOptimizeAway(t)
 
-bench(jsmn_deserialize, m):
+bench(sam_deserialize, m):
   var
     t: Data
-    r: int
-    tokens: array[1024, JsmnToken]
   for _ in 1..m:
     for js in lines("world_bank.json"):
-      r = parseJson(js, tokens)
-      loadObject(t, tokens, r, js)
-      doNotOptimizeAway(t)
-
-bench(jsmn_deserialize_dymanic_pool_size, m):
-  var
-    t: Data
-    tokens: seq[JsmnToken]
-  for _ in 1..m:
-    for js in lines("world_bank.json"):
-      tokens = jsmn.parseJson(js)
-      loadObject(t, tokens, tokens.len, js)
+      t.loads(js)
       doNotOptimizeAway(t)
 
 runBenchmarks()
