@@ -5,13 +5,15 @@ const
   port = 443
 
 bench(strutils, m):
+  var s = ""
   for _ in 1..m:
-    var s = "$#:$#" % [host, $port]
-    doNotOptimizeAway(s)
+    s = "$#:$#" % [host, $port]
+  doNotOptimizeAway(s)
 
 bench(strconcat, m):
+  var s = ""
   for _ in 1..m:
-    var s = host & ":" & $port
-    doNotOptimizeAway(s)
+    s = host & ":" & $port
+  doNotOptimizeAway(s)
 
 runBenchmarks()

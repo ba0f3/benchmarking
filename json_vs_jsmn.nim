@@ -1,4 +1,5 @@
-import nimbench, marshal, ../sam.nim/sam
+import nimbench, marshal
+import ../sam.nim/sam except `$$`
 
 type
   Grade = enum
@@ -24,15 +25,15 @@ s.grade = A
 
 
 bench(sam_dumps, m):
+  var x = ""
   for _ in 1..m:
-    var x = s.dumps
-#    echo x
+    x = s.dumps
     doNotOptimizeAway(x)
 
 bench(marshal_load, m):
+  var x = ""
   for _ in 1..m:
-    var x = $$s
-#    echo x
+    x = $$s
     doNotOptimizeAway(x)
 
 runBenchmarks()

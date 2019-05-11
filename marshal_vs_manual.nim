@@ -129,12 +129,37 @@ bench(marshal_deserialize, m):
       t = to[Data](js)
       doNotOptimizeAway(t)
 
-bench(sam_deserialize, m):
+bench(sam_deserialize_small_buffer_size_64, m):
+  var
+    t: Data
+  for _ in 1..m:
+    for js in lines("world_bank.json"):
+      t.loads(js, 64)
+      doNotOptimizeAway(t)
+
+bench(sam_deserialize_small_buffer_size_128, m):
+  var
+    t: Data
+  for _ in 1..m:
+    for js in lines("world_bank.json"):
+      t.loads(js, 128)
+      doNotOptimizeAway(t)
+
+bench(sam_deserialize_default_buffer_size_256, m):
   var
     t: Data
   for _ in 1..m:
     for js in lines("world_bank.json"):
       t.loads(js)
+      doNotOptimizeAway(t)
+
+
+bench(sam_deserialize_adjustified_buffer_size_320, m):
+  var
+    t: Data
+  for _ in 1..m:
+    for js in lines("world_bank.json"):
+      t.loads(js, 320)
       doNotOptimizeAway(t)
 
 runBenchmarks()
