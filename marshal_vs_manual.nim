@@ -81,8 +81,8 @@ bench(json_parse, m):
       var n = parseJson(js)
       name = n["majorsector_percent"][0]["Name"].str
       percent = n["majorsector_percent"][0]["Percent"].num.int
-      doNotOptimizeAway(name)
-      doNotOptimizeAway(percent)
+  doNotOptimizeAway(name)
+  doNotOptimizeAway(percent)
 
 bench(json_parse2, m):
   var
@@ -93,8 +93,8 @@ bench(json_parse2, m):
       var n = parseJson(js)["majorsector_percent"][0]
       name = n["Name"].str
       percent = n["Percent"].num.int
-      doNotOptimizeAway(name)
-      doNotOptimizeAway(percent)
+  doNotOptimizeAway(name)
+  doNotOptimizeAway(percent)
 
 bench(json_parse3, m):
   var
@@ -105,8 +105,8 @@ bench(json_parse3, m):
       var n = parseJson(js){"majorsector_percent"}[0]
       name = n["Name"].str
       percent = n["Percent"].num.int
-      doNotOptimizeAway(name)
-      doNotOptimizeAway(percent)
+  doNotOptimizeAway(name)
+  doNotOptimizeAway(percent)
 
 
 bench(sam_parse, m):
@@ -117,9 +117,22 @@ bench(sam_parse, m):
     for js in lines("world_bank.json"):
       var n = parse(js)
       name = n["majorsector_percent"][0]["Name"].toStr()
-      percent = n{1}["Percent"].toInt()
-      doNotOptimizeAway(name)
-      doNotOptimizeAway(percent)
+      percent = n["majorsector_percent"][0]["Percent"].toInt()
+  doNotOptimizeAway(name)
+  doNotOptimizeAway(percent)
+
+bench(sam_parse_small_buffer, m):
+  var
+    name: string
+    percent: int
+  for _ in 1..m:
+    for js in lines("world_bank.json"):
+      var n = parse(js, 128)
+      name = n["majorsector_percent"][0]["Name"].toStr()
+      percent = n["majorsector_percent"][0]["Percent"].toInt()
+  doNotOptimizeAway(name)
+  doNotOptimizeAway(percent)
+
 
 bench(marshal_deserialize, m):
   var
@@ -127,7 +140,7 @@ bench(marshal_deserialize, m):
   for _ in 1..m:
     for js in lines("world_bank.json"):
       t = to[Data](js)
-      doNotOptimizeAway(t)
+  doNotOptimizeAway(t)
 
 bench(sam_deserialize_small_buffer_size_64, m):
   var
@@ -135,7 +148,7 @@ bench(sam_deserialize_small_buffer_size_64, m):
   for _ in 1..m:
     for js in lines("world_bank.json"):
       t.loads(js, 64)
-      doNotOptimizeAway(t)
+  doNotOptimizeAway(t)
 
 bench(sam_deserialize_small_buffer_size_128, m):
   var
@@ -143,7 +156,7 @@ bench(sam_deserialize_small_buffer_size_128, m):
   for _ in 1..m:
     for js in lines("world_bank.json"):
       t.loads(js, 128)
-      doNotOptimizeAway(t)
+  doNotOptimizeAway(t)
 
 bench(sam_deserialize_default_buffer_size_256, m):
   var
@@ -151,7 +164,7 @@ bench(sam_deserialize_default_buffer_size_256, m):
   for _ in 1..m:
     for js in lines("world_bank.json"):
       t.loads(js)
-      doNotOptimizeAway(t)
+  doNotOptimizeAway(t)
 
 
 bench(sam_deserialize_adjustified_buffer_size_320, m):
@@ -160,6 +173,6 @@ bench(sam_deserialize_adjustified_buffer_size_320, m):
   for _ in 1..m:
     for js in lines("world_bank.json"):
       t.loads(js, 320)
-      doNotOptimizeAway(t)
+  doNotOptimizeAway(t)
 
 runBenchmarks()
